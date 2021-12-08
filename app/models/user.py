@@ -1,12 +1,13 @@
 from pydantic import EmailStr, BaseModel
 from typing import Optional
+from odmantic import ObjectId
 
 class User(BaseModel):
     username: str
     email: Optional[EmailStr] = None
     password: str
     manage_location: str
-    manager_id: str
+    manager_id: ObjectId
     role: str
 
 class UserInLogin(BaseModel):
@@ -18,10 +19,6 @@ class UserInCreate(BaseModel):
     email: Optional[EmailStr] = None
     password: str
     manage_location: str
+    manager_id: Optional[ObjectId] = None
     role: str
     
-# class UserInUpdate(BaseModel):
-#     password: Optional[str] = None
-#     firstName: Optional[str] = None
-#     lastName: Optional[str] = None
-#     gender: Optional[str] = None
