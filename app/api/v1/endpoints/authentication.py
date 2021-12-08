@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from pymongo import MongoClient
 
 from ....core.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from ....core.security import verify_password, get_password_hash
 from ....core.jwt import generate_token
 from ....db.mongodb import get_database
 from ....models.user import User, UserInLogin
