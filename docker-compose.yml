@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  backend:
+    build: .
+    networks:
+      - survey-network
+    ports:
+      - "8000:8000"
+
+networks:
+  survey-network:
+    driver: bridge
