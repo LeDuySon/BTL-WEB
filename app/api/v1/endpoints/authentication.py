@@ -10,7 +10,7 @@ from ....crud.user import authenticate_user
 router = APIRouter()
 
 @router.post("/login", tags=["Authentication"])
-def login(user_login: UserInLogin = Depends(), db: MongoClient = Depends(get_database)):
+def login(user_login: UserInLogin, db: MongoClient = Depends(get_database)):
     user = authenticate_user(user_login, db)
     if(not user):
         raise HTTPException(
