@@ -3,6 +3,7 @@ from typing import Optional
 from odmantic import ObjectId
 
 class User(BaseModel):
+    id: ObjectId
     username: str
     email: Optional[EmailStr] = None
     password: str
