@@ -93,17 +93,13 @@ def get_management_info_by_username(username: str, db: MongoClient):
     # query info
     child_locations = get_all_childs_of_location(user.manage_location, query_collection, sub_collection, db)
     child_users = get_child_user_from_user_id(user.id, db)
-    
     location_has_manager = [k["manage_location"] for k in child_users]
     for obj in child_locations:
         if(obj["code"] in location_has_manager):
             obj["username"] = obj["code"] 
         else:
             obj["username"] = None
-            
-        del obj["district"]
-        del obj["_id"]
-            
+                        
     return child_locations
   
 """

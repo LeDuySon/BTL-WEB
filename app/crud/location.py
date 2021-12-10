@@ -27,11 +27,10 @@ def get_all_childs_of_location(
     """Get all locations which is a child of the given location code"""
     pipeline = [
         {
-            "$match": {
-                "code": location_code
+            '$match': {
+                'code': location_code
             }
-        },
-        {
+        }, {
             '$unwind': {
                 'path': f'${sub_collection}'
             }
@@ -44,18 +43,25 @@ def get_all_childs_of_location(
             }
         }, {
             '$project': {
-                'info': 1, 
+                'info': {
+                    '$first': '$info'
+                }, 
                 '_id': 0
             }
+        }, {
+            '$project': {
+                'code': '$info.code', 
+                'name': '$info.name'
+            }
         }
-    ]
+]
     
     data = db[database_name][query_collection].aggregate(pipeline)
-    flatten_data = [k["info"][0] for k in list(data)]
-    return flatten_data
+    data = list(data)
+    if(len(data[0].keys()) > 0):
+        return data
+    return []
     
-
-
 """
 Utils for location
 """
