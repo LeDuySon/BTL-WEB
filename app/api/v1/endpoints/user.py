@@ -33,11 +33,12 @@ def create_user(
         "messages": {}
     }
     
-@router.get("/user/getAllManagementLocation", tags=["User"])
-def get_all_management_location(
+@router.get("/user/childs/all", tags=["User"])
+def get_all_management_childs(
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
 ):
+    """List all childs (locations and users) of a given user"""
     data = get_management_info_by_username(auth.username, db)
     
     return {

@@ -97,9 +97,9 @@ def get_management_info_by_username(username: str, db: MongoClient):
     location_has_manager = [k["manage_location"] for k in child_users]
     for obj in child_locations:
         if(obj["code"] in location_has_manager):
-            obj["user_name"] = obj["code"] 
+            obj["username"] = obj["code"] 
         else:
-            obj["user_name"] = None
+            obj["username"] = None
             
         del obj["district"]
         del obj["_id"]
