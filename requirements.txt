@@ -28,4 +28,5 @@ typing-extensions==3.10.0.2
 urllib3==1.26.7
 uvicorn==0.15.0
 odmantic==0.3.5
+gunicorn==20.1.0
 # lam branch
