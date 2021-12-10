@@ -13,7 +13,9 @@ ALGORITHM = config("ALGORITHM")
 database_name = PROJECT_NAME
 user_collection_name = "user"
 role_collection_name = "role"
+country_collection_name = "country"
 city_collection_name = "city"
 district_collection_name = "district"
 ward_collection_name = "ward"
+
 
