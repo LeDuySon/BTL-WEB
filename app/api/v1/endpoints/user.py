@@ -4,12 +4,17 @@ from pymongo import MongoClient
 from uuid import uuid4
 
 from ....core.jwt import validate_token
-from ....core.authorization import validate_role_authorization_on_create
+from ....core.authorization import (validate_role_authorization_on_create, 
+                                    validate_user_authorization_on_crud_others)
 from ....db.mongodb import get_database
-from ....models.user import User, UserInLogin, UserInCreate
+from ....models.user import UserInCreate, UserInAuthorize, UserState
 from ....models.auth import AuthToken
-from ....crud.user import create_new_user, get_management_info_by_username
-from ....crud.location import get_all_city
+from ....crud.user import (create_new_user,
+                           get_management_info_by_username,
+                           get_user_by_username, 
+                           get_child_user_from_user_id,
+                           update_user_state,
+                           update_valid_declare_time)
 
 router = APIRouter()
 
@@ -34,7 +39,7 @@ def create_user(
     }
     
 @router.get("/user/childs/all", tags=["User"])
-def get_all_management_childs(
+def get_all_management_childs_all(
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
 ):
@@ -47,3 +52,60 @@ def get_all_management_childs(
             "data": data
         }
     }
+
+@router.get("/user/childs/user", tags=["User"])
+def get_all_management_childs_user(
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    """List all childs (users) of a given user"""
+    user = get_user_by_username(auth.username, db)
+    data = get_child_user_from_user_id(user.id, db)
+    
+    return {
+        "success": True,
+        "messages": {
+            "data": data
+        }
+    }
+
+
+@router.post("/user/childs/authorize/time", tags=["User"])
+def authorize_child_user_declare_time(
+    user: UserInAuthorize,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    """Set the start and end time of the right of declaration"""
+    if(validate_user_authorization_on_crud_others(auth.username, user.username, db)):
+        is_success = update_valid_declare_time(user, db)
+    else:
+        is_success = False
+        
+    return {
+        "success": is_success,
+        "messages": {},
+    }
+
+@router.post("/user/childs/authorize/state", tags=["User"])
+def set_child_user_state(
+    user: UserState,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    """
+    Activate/deactivate the authorization of child user to create, update, delete survey data.
+    If a child user is active/inactive, all their children will be active/inactive too.
+    """
+    if(validate_user_authorization_on_crud_others(auth.username, user.username, db)):
+        is_success = update_user_state(user, db)
+    else:
+        is_success = False
+        
+    return {
+        "success": is_success,
+        "messages": {},
+    }
+
+    
+    

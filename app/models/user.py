@@ -23,3 +23,11 @@ class UserInCreate(BaseModel):
     manager_id: Optional[ObjectId] = None
     role: str
     
+class UserInAuthorize(BaseModel):
+    username: str 
+    start_time: str
+    end_time: str
+    
+class UserState(BaseModel):
+    username: str 
+    is_active: bool
