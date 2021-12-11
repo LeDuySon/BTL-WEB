@@ -30,6 +30,3 @@ def login(user_login: UserInLogin, db: MongoClient = Depends(get_database)):
     }
     
         
-    
-
-
