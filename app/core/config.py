@@ -3,7 +3,7 @@ from decouple import config
 API_V1_STR = "/api/v1"
 
 JWT_TOKEN_PREFIX = "Token"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # one week
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # one week
 
 PROJECT_NAME = config("PROJECT_NAME")
 MONGODB_URI = config("MONGODB_URI")
@@ -17,5 +17,4 @@ country_collection_name = "country"
 city_collection_name = "city"
 district_collection_name = "district"
 ward_collection_name = "ward"
-
-
+survey_collection_name = 'survey'
