@@ -1,6 +1,8 @@
+import datetime
 from pydantic import EmailStr, BaseModel
 from typing import Optional
 from odmantic import ObjectId
+from bson.timestamp import Timestamp
 
 class User(BaseModel):
     id: ObjectId
@@ -22,6 +24,7 @@ class UserInCreate(BaseModel):
     manage_location: str
     manager_id: Optional[ObjectId] = None
     role: str
+    createAt: datetime.datetime
     
 class UserInAuthorize(BaseModel):
     username: str 
