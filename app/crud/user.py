@@ -37,7 +37,7 @@ def get_user_by_username(username: str, db: MongoClient) -> User:
     """Get all user info from database by username"""
     data = db[database_name][user_collection_name].find({"username": username})
     user_datas = list(data)
-    print(user_datas)
+    # print(user_datas)
     if(len(user_datas) > 0):
         user_data = user_datas[0]
         user_data["id"] = user_data.pop("_id")

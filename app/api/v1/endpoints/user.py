@@ -106,6 +106,4 @@ def set_child_user_state(
         "success": is_success,
         "messages": {},
     }
-
-    
-    
+ 

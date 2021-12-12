@@ -9,6 +9,7 @@ from ..core.config import (database_name,
 from ..models.location import LocationInCreate
 from ..models.user import User
 
+
 def get_all_city(db: MongoClient) -> List[dict]:
     """Get all cities name and code from city collection"""
     data = db[database_name][city_collection_name].find(
@@ -79,7 +80,7 @@ def update_code_of_location(user: User, location: LocationInCreate, db: MongoCli
             {
             "$set": {"code": location.code}
         })
-        return True 
+        return True
     return False
 
 
@@ -100,6 +101,20 @@ def get_collection_name_from_location_code(code: str) -> str:
     elif(code_length == 6):
         collection_name = ward_collection_name
     return collection_name
+
+
+def get_location_unit_from_location_code(code: str):
+    location_unit = None
+    code_length = len(code)
+    if(code_length == 1):
+        location_unit = 'country'
+    elif(code_length == 2):
+        location_unit = 'city'
+    elif(code_length == 4):
+        location_unit = 'district'
+    elif(code_length == 6):
+        location_unit = 'ward'
+    return location_unit
 
 
 def get_collection_field(location_info: dict) -> str:
