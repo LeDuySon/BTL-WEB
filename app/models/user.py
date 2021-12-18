@@ -25,6 +25,9 @@ class UserInCreate(BaseModel):
     manager_id: Optional[ObjectId] = None
     role: str
     createAt: datetime.datetime
+
+class UserInDelete(BaseModel):
+    username: str
     
 class UserInAuthorize(BaseModel):
     username: str 
