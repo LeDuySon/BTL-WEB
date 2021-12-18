@@ -7,7 +7,7 @@ from .location import (get_collection_name_from_location_code,
                        retrieve_location_info_by_code,
                        get_collection_field,
                        get_all_childs_of_location)
-from ..models.user import UserInLogin, User, UserInCreate, UserState, UserInAuthorize
+from ..models.user import UserInDelete, UserInLogin, User, UserInCreate, UserState, UserInAuthorize
 from ..core.config import (database_name,
                            user_collection_name,
                            role_collection_name,
@@ -161,7 +161,22 @@ def update_valid_declare_time(user: UserInAuthorize, db: MongoClient):
             }
         }
     }
-    update_results = db[database_name][user_collection_name].update_many(query, data, upsert=True)
+    update_results = db[database_name][user_collection_name].update_many(
+        query, data, upsert=True)
     if(update_results.modified_count > 0):
-        return True 
+        return True
     return False
+
+
+"""
+CRUD DELETE
+"""
+
+
+def delete_user_by_username(user: UserInDelete, db: MongoClient):
+
+    delete_user = db[database_name][user_collection_name].delete_one({'username': user.username})
+    if(not delete_user):
+        return False
+    else:
+        return True

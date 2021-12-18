@@ -26,13 +26,15 @@ def validate_user_authorization_on_create_location(user: User, location: Locatio
         locations = db[database_name][query_collection].find(
             {"name": location.name, "parents_code": user.manage_location})
         if(len(list(locations)) > 0):
-            return True 
+            return True
     return False
+
 
 def validate_user_authorization_on_crud_others(username: str, child_username: str, db: MongoClient):
     """Check user have CRUD authorization on other users"""
-    child_user = get_user_by_username(child_username, db) 
+    child_user = get_user_by_username(child_username, db)
+    if not child_user:
+        return False
     user_id = get_user_id_by_username(username, db)
-    
+
     return (child_user.manager_id == user_id)
- 
