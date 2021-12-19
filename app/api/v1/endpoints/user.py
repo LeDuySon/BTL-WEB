@@ -50,8 +50,10 @@ def delete_user(
         is_success = delete_user_by_username(user, db)
         message = 'Delete user ' + user.username + ' successfully'
     else:
-        is_success = False
-        message = 'You don\'t have permission on this user or user not found'
+        raise HTTPException(
+            status_code=401,
+            detail = 'You don\'t have permission on this user or user not found'
+        )
     return {
         "success": is_success,
         "message": message
