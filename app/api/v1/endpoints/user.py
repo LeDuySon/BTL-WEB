@@ -32,7 +32,6 @@ def create_user(
             status_code=401,
             detail=f"User is not authorized to create a new user with role {user.role}",
         )
-
     return {
         "success": True,
         "messages": {}
@@ -102,14 +101,21 @@ def authorize_child_user_declare_time(
     """Set the start and end time of the right of declaration"""
     if(validate_user_authorization_on_crud_others(auth.username, user.username, db)):
         is_success = update_valid_declare_time(user, db)
+        if(is_success):
+            return {
+                "success": is_success,
+                "messages": {},
+            }
+        else:
+            raise HTTPException(
+                status_code=409,
+                detail = 'Time range is not valid or already exists'
+            )
     else:
-        is_success = False
-
-    return {
-        "success": is_success,
-        "messages": {},
-    }
-
+        raise HTTPException(
+            status_code=401,
+            detail = 'You don\'t have permission on this user or user not found'
+        )
 
 @router.post("/user/childs/authorize/state", tags=["User"])
 def set_child_user_state(
@@ -123,10 +129,20 @@ def set_child_user_state(
     """
     if(validate_user_authorization_on_crud_others(auth.username, user.username, db)):
         is_success = update_user_state(user, db)
+        if(is_success):
+            return {
+                "success": is_success,
+                "messages": {},
+            }
+        else:
+            raise HTTPException(
+                status_code=409,
+                detail = 'Conflict with user state in database'
+            )
     else:
-        is_success = False
+        raise HTTPException(
+            status_code=401,
+            detail = 'You don\'t have permission on this user or user not found'
+        )
 
-    return {
-        "success": is_success,
-        "messages": {},
-    }
+    
