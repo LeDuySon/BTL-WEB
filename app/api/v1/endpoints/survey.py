@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.exceptions import HTTPException
 from pymongo import MongoClient
 from ....models.auth import AuthToken
 
@@ -9,7 +10,8 @@ from app.crud.survey import get_citizen_by_identidy_number, get_citizens_from_su
 
 router = APIRouter()
 
-@router.get('/user/survey/location/citizens', tags=["Survey"])
+
+@router.get('/survey/location/citizens', tags=["Survey"])
 def get_citizens_from_location_code(
     code: str,
     db: MongoClient = Depends(get_database),
@@ -19,15 +21,21 @@ def get_citizens_from_location_code(
     location_unit = get_location_unit_from_location_code(code)
     data = get_citizens_from_survey_col(code, location_unit, db)
 
-    return {
-        "success": True,
-        "messages": {
-            "data": data
+    if len(data) != 0:
+        return {
+            "success": True,
+            "messages": {
+                "data": data
+            }
         }
-    }
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="not found"
+        )
 
 
-@router.get('/user/survey/citizen-by-id-number', tags=["Survey"])
+@router.get('/survey/citizen-by-id-number', tags=["Survey"])
 def get_citizen_by_id_number(
     id_number: str,
     db: MongoClient = Depends(get_database),
@@ -36,9 +44,15 @@ def get_citizen_by_id_number(
     """Get one citizen by a given identity number"""
     data = get_citizen_by_identidy_number(id_number, db)
 
-    return {
-        "success": True,
-        "messages": {
-            "data": data
+    if data != None:
+        return {
+            "success": True,
+            "messages": {
+                "data": data
+            }
         }
-    }
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="not found"
+        )
