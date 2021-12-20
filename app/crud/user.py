@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from odmantic import ObjectId
-
+import datetime
 from fastapi.encoders import jsonable_encoder
 
 from .location import (get_collection_name_from_location_code,
@@ -152,6 +152,15 @@ def update_user_state(user_state: UserState, db: MongoClient):
 
 def update_valid_declare_time(user: UserInAuthorize, db: MongoClient):
     """Update the start and end time of the right of declaration"""
+    
+    # check valid UTC time stamp
+    current_time = datetime.datetime.now()
+    start_diff = (datetime.datetime.fromtimestamp(int(user.start_time)) - current_time).total_seconds()
+    start_end_diff = (datetime.datetime.fromtimestamp(int(user.end_time)) 
+                      - datetime.datetime.fromtimestamp(int(user.start_time))).total_seconds()
+    if(start_diff >= 0 or start_end_diff > 0):
+        return False
+    
     query = {"username": user.username}
     data = {
         "$set": {
@@ -174,7 +183,6 @@ CRUD DELETE
 
 
 def delete_user_by_username(user: UserInDelete, db: MongoClient):
-
     delete_user = db[database_name][user_collection_name].delete_one({'username': user.username})
     if(not delete_user):
         return False

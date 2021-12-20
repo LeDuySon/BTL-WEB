@@ -29,10 +29,10 @@ def create_location(
             }
         else:
             return_msg = "Location code is already existed"
-            return {
-                "messages": return_msg,
-                "success": False
-            }
+            raise HTTPException(
+            status_code=409,
+            detail = return_msg
+        )
     else:
         raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
