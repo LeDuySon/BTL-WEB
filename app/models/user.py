@@ -24,7 +24,9 @@ class UserInCreate(BaseModel):
     manage_location: str
     manager_id: Optional[ObjectId] = None
     role: str
-    createAt: datetime.datetime
+    active: Optional[bool] = False
+    createAt: Optional[datetime.datetime] = datetime.datetime.now()
+    avtConfig: Optional[dict] = {}
 
 class UserInDelete(BaseModel):
     username: str
