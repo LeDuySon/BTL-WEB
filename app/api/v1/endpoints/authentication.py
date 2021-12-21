@@ -24,6 +24,9 @@ def login(user_login: UserInLogin, db: MongoClient = Depends(get_database)):
     return {
         "messages": {
             "token": access_token,
+            "username": user.username,
+            "role": user.role,
+            "avtConfig": user.avtConfig,
             "token_type": "bearer"
         },
         "success": True
