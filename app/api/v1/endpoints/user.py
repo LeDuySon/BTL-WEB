@@ -109,7 +109,7 @@ def authorize_child_user_declare_time(
         else:
             raise HTTPException(
                 status_code=409,
-                detail = 'Time range is not valid or already exists'
+                detail = 'Time range is not valid or you already set this before'
             )
     else:
         raise HTTPException(
