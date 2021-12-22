@@ -15,6 +15,7 @@ class User(BaseModel):
     role: str
     avtConfig: Optional[dict] = {}
 
+
 class UserInLogin(BaseModel):
     username: str
     password: str
