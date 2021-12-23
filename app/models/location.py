@@ -2,7 +2,12 @@ from pydantic import EmailStr, BaseModel
 from typing import Optional
 from odmantic import ObjectId
 
-class LocationInCreate(BaseModel):
+class LocationInUpdateCode(BaseModel):
     name: str 
     code: str 
+    
+class LocationInCreate(BaseModel):
+    name: str 
+    code: Optional[str] = None
+    parents_code: Optional[str] = None
     
