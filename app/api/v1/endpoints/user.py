@@ -9,7 +9,7 @@ from ....core.authorization import (validate_role_authorization_on_create,
 from ....db.mongodb import get_database
 from ....models.user import UserInCreate, UserInAuthorize, UserInDelete, UserState
 from ....models.auth import AuthToken
-from ....crud.user import (create_new_user, delete_user_by_username, get_child_role,
+from ....crud.user import (create_new_user, delete_user_by_username, get_child_role, get_child_user_survey_time_from_user_id,
                            get_management_info_by_username,
                            get_user_by_username,
                            get_child_user_from_user_id,
@@ -99,7 +99,50 @@ def get_child_role_name(
 ):
     role = auth.role
     child_role_name = get_child_role(role, db)
-    return child_role_name
+
+    if child_role_name:
+        return {
+            "success": True,
+            "messages": {
+                "data": child_role_name
+            }
+        }
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail='Cannot find child roles'
+        )
+
+
+@router.get('/user/childs/survey_time', tags=['User'])
+def get_child_survey_time(
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    user = get_user_by_username(auth.username, db)
+    child_users = get_child_user_survey_time_from_user_id(user.id, db)
+
+    if child_users:
+        data = {
+            'user': {
+                "username": user.username,
+                "survey_time": user.survey_time,
+                "is_finish": user.is_finish
+            },
+            'child_users': child_users
+        }
+
+        return {
+            "success": True,
+            "messages": {
+                "data": data
+            }
+        }
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail='Cannot find child user survey time'
+        )
 
 
 @router.post("/user/childs/authorize/time", tags=["User"])
@@ -119,7 +162,7 @@ def authorize_child_user_declare_time(
         else:
             raise HTTPException(
                 status_code=409,
-                detail = 'Time range is not valid or you already set this before'
+                detail='Time range is not valid or you already set this before'
             )
     else:
         raise HTTPException(

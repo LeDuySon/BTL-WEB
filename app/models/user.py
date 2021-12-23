@@ -14,6 +14,8 @@ class User(BaseModel):
     manager_id: ObjectId
     role: str
     avtConfig: Optional[dict] = {}
+    survey_time: Optional[dict] = {}
+    is_finish: bool
 
 
 class UserInLogin(BaseModel):
