@@ -1,3 +1,4 @@
+import pymongo
 from pymongo import MongoClient
 from odmantic import ObjectId
 from datetime import datetime, timedelta
@@ -114,6 +115,7 @@ def get_management_info_by_username(username: str, db: MongoClient):
     child_users = get_child_user_from_user_id(user.id, db)
     location_has_manager = [k["manage_location"] for k in child_users]
     for obj in child_locations:
+        print(obj)
         if(obj["code"] in location_has_manager):
             obj["username"] = obj["code"]
         else:
@@ -134,13 +136,15 @@ def create_new_user(user: UserInCreate, manager_name: str, db: MongoClient):
     user_json = jsonable_encoder(user)
     user_json["manager_id"] = manager_id
     # insert into database
-    db[database_name][user_collection_name].insert_one(user_json)
-
+    try:
+        db[database_name][user_collection_name].insert_one(user_json)
+    except pymongo.errors.DuplicateKeyError: 
+        return False 
+    return True
 
 """
 CRUD UPDATE
 """
-
 
 def update_user_state(user_state: UserState, db: MongoClient):
     user = get_user_by_username(user_state.username, db)
@@ -154,7 +158,6 @@ def update_user_state(user_state: UserState, db: MongoClient):
     if(update_results.modified_count > 0):
         return True
     return False
-
 
 def update_valid_declare_time(user: UserInAuthorize, db: MongoClient):
     """Update the start and end time of the right of declaration"""

@@ -26,7 +26,12 @@ def create_user(
     auth: AuthToken = Depends(validate_token)
 ):
     if(validate_role_authorization_on_create(auth.role, user.role, db)):
-        create_new_user(user, auth.username, db)
+        valid = create_new_user(user, auth.username, db)
+        if(not valid):
+            raise HTTPException(
+                status_code=409,
+                detail=f"User {user.username} already existed",
+            )
     else:
         raise HTTPException(
             status_code=401,

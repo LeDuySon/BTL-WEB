@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from typing import List
+from odmantic import ObjectId
 
 from ..core.config import (database_name,
                            country_collection_name,
@@ -64,6 +65,7 @@ def get_all_childs_of_location(
 
     data = db[database_name][query_collection].aggregate(pipeline)
     data = list(data)
+    print(len(data))
     if(len(data[0].keys()) > 0):
         return data
     return []
@@ -91,7 +93,9 @@ def create_new_location(user: User, location: LocationInCreate, db: MongoClient)
         "parents_code": user.manage_location,
     }
     
-    db[database_name][query_collection].insert_one(insert_dict)
+    results = db[database_name][query_collection].insert_one(insert_dict)
+    # append new location to parent location list childs
+    append_child_location(user.manage_location, results.inserted_id, db)
     
 def update_code_of_location(user: User, location: LocationInUpdateCode, db: MongoClient):
     query_collection = get_collection_name_from_location_code(location.code)
@@ -106,6 +110,14 @@ def update_code_of_location(user: User, location: LocationInUpdateCode, db: Mong
         })
         return True
     return False
+
+def append_child_location(loc_code: str, object_id: str, db: MongoClient):
+    query_collection = get_collection_name_from_code_length(len(loc_code))
+    target_field = get_loc_name_from_parent_code(loc_code, db)
+    
+    target_doc = {"code": loc_code}
+    update_field = {'$push': {target_field: object_id}}
+    db[database_name][query_collection].find_one_and_update(target_doc, update_field, upsert=True)
 
 """
 Utils for location
@@ -146,7 +158,6 @@ def get_location_unit_from_location_code(code: str):
     elif(code_length == 6):
         location_unit = 'ward'
     return location_unit
-
 
 def get_collection_field(location_info: dict) -> str:
     """Get the sub collection in location info (country -> city)"""

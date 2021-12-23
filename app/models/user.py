@@ -15,14 +15,13 @@ class User(BaseModel):
     role: str
     avtConfig: Optional[dict] = {}
     survey_time: Optional[dict] = {}
-    is_finish: bool
+    is_finish: Optional[bool] = False
 
 
 class UserInLogin(BaseModel):
     username: str
     password: str
-
-
+    
 class UserInCreate(BaseModel):
     username: str
     email: Optional[EmailStr] = None
@@ -33,7 +32,20 @@ class UserInCreate(BaseModel):
     active: Optional[bool] = False
     createAt: Optional[datetime.datetime] = datetime.datetime.now()
     avtConfig: Optional[dict] = {}
-
+    is_finish: Optional[bool] = False
+    
+    class Config:
+        schema_extra = {
+            "example": {
+            "username": "lam",
+            "email": "lam@example.com",
+            "password": "lam",
+            "manage_location": "03",
+            "role": "A2",
+            "active": False,
+            "avtConfig": {}
+            }
+        }
 
 class UserInDelete(BaseModel):
     username: str
