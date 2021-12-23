@@ -11,3 +11,11 @@ class LocationInCreate(BaseModel):
     code: Optional[str] = None
     parents_code: Optional[str] = None
     
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Hải Phòng",
+                "code": "69",
+            }
+        }
+    
