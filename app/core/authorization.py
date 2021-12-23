@@ -9,7 +9,7 @@ from ..core.config import (database_name,
                            city_collection_name,
                            district_collection_name,
                            ward_collection_name)
-from ..models.location import LocationInCreate
+from ..models.location import LocationInUpdateCode
 from ..models.user import User
 
 
@@ -18,8 +18,7 @@ def validate_role_authorization_on_create(user_role: str, created_role: str,  db
     valid_roles = get_child_role(user_role, db)
     return (created_role in valid_roles)
 
-
-def validate_user_authorization_on_create_location(user: User, location: LocationInCreate, db: MongoClient):
+def validate_user_authorization_on_update_location(user: User, location: LocationInUpdateCode, db: MongoClient):
     query_collection = get_collection_name_from_location_code(location.code)
     if(query_collection):
         # check user authorized to create location
@@ -28,7 +27,6 @@ def validate_user_authorization_on_create_location(user: User, location: Locatio
         if(len(list(locations)) > 0):
             return True
     return False
-
 
 def validate_user_authorization_on_crud_others(username: str, child_username: str, db: MongoClient):
     """Check user have CRUD authorization on other users"""
