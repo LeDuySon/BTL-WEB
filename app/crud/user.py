@@ -94,7 +94,7 @@ def get_child_user_from_user_id(id: ObjectId, db: MongoClient):
 
 def get_child_user_survey_time_from_user_id(id: ObjectId, db: MongoClient):
     data = db[database_name][user_collection_name].find(
-        {"manager_id": id}, {"username": 1, "survey_time": 1, "is_finish": 1, "_id": 0})
+        {"manager_id": id, "is_finish": False}, {"username": 1, "survey_time": 1, "is_finish": 1, "_id": 0})
     return list(data)
 
 
