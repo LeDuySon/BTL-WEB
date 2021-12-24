@@ -162,16 +162,13 @@ def update_user_state(user_state: UserState, db: MongoClient):
 def update_valid_declare_time(user: UserInAuthorize, db: MongoClient):
     """Update the start and end time of the right of declaration"""
 
-    # check valid UTC time stamp
-    current_time = datetime.now()
     # check time start of the day
-    check_time = datetime.now() - timedelta(hours=int(current_time.hour))
-    print(check_time)
+    check_time = datetime.now() - timedelta(1)
     start_diff = (datetime.fromtimestamp(
         int(user.start_time)) - check_time).total_seconds()
     start_end_diff = (datetime.fromtimestamp(int(user.end_time))
                       - datetime.fromtimestamp(int(user.start_time))).total_seconds()
-    if(start_diff <= 0 or start_end_diff < 0):
+    if(start_diff < 0 or start_end_diff < 0):
         return False
 
     query = {"username": user.username}
