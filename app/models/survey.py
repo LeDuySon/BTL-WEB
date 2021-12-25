@@ -24,7 +24,7 @@ class SurveyForm(BaseModel):
         home_address: str
 
     identity_number: str
-    fulname: str
+    fullname: str
     dob: str
     gender: str
     hometown: str
