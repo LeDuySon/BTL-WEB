@@ -6,7 +6,11 @@ from ....models.auth import AuthToken
 from ....db.mongodb import get_database
 from ....core.jwt import validate_token
 from app.crud.location import get_location_unit_from_location_code
-from app.crud.survey import get_citizen_by_identidy_number, get_citizens_from_survey_col
+from app.crud.survey import (get_citizen_by_identidy_number,
+                             get_citizens_from_survey_col,
+                             retrieve_number_of_people_per_occupation,
+                             retrieve_age_dist_per_gender)
+from app.models.location import LocationListInSurvey
 
 router = APIRouter()
 
@@ -55,4 +59,43 @@ def get_citizen_by_id_number(
         raise HTTPException(
             status_code=401,
             detail="not found"
+        )
+        
+@router.post('/survey/location/occupation', tags=["Survey"])
+def get_number_of_peole_per_occupation(
+    location: LocationListInSurvey,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    """Get number of people in each occupation"""
+    data = retrieve_number_of_people_per_occupation(location, db)
+
+    return {
+        "success": True,
+        "messages": {
+            "data": data
+        }
+    }
+
+@router.post('/survey/location/age-dist', tags=["Survey"])
+def get_age_gender_dist_in_loc(
+    location: LocationListInSurvey,
+    gender: str,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    """Get number of oeople in each age range (per gender)"""
+    if(gender in ["Nam", "Nữ"]):
+        data = retrieve_age_dist_per_gender(location, gender, db)
+
+        return {
+            "success": True,
+            "messages": {
+                "data": data
+            }
+        }
+    else: 
+        raise HTTPException(
+            status_code=400,
+            detail="Gender not existed"
         )
