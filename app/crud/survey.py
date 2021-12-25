@@ -82,8 +82,6 @@ def insert_data_into_col(data: SurveyForm, db: MongoClient):
     data_json = jsonable_encoder(data)
     id_num = data_json['identity_number']
 
-    print(data_json)
-
     if db[database_name][survey_collection_name].find_one({'identity_number': id_num}):
         return False
 

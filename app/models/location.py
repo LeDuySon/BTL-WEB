@@ -1,5 +1,5 @@
 from pydantic import EmailStr, BaseModel
-from typing import Optional
+from typing import Optional, List
 from odmantic import ObjectId
 
 class LocationInUpdateCode(BaseModel):
@@ -16,6 +16,16 @@ class LocationInCreate(BaseModel):
             "example": {
                 "name": "Hải Phòng",
                 "code": "69",
+            }
+        }
+        
+class LocationListInSurvey(BaseModel):
+    codes: List[str]
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "codes": ["01", "02", "03"],
             }
         }
     
