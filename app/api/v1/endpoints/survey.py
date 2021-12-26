@@ -8,7 +8,7 @@ from app.crud.user import get_user_by_username
 import xlrd
 import shutil
 
-from app.models.survey import SurveyForm
+from app.models.survey import SurveyDeleteCitizen, SurveyForm
 from ....models.auth import AuthToken
 
 from ....db.mongodb import get_database
@@ -174,10 +174,11 @@ def insert_data(
 
 @router.post('/survey/citizen/delete', tags=['Survey'])
 def delete_one_citizen(
-    id_num: str,
+    citizen: SurveyDeleteCitizen,
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
 ):
+    id_num = citizen.identity_number
     user = get_user_by_username(auth.username, db)
     if not user.active:
         return {

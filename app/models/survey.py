@@ -6,6 +6,8 @@ from odmantic import ObjectId
 from bson.timestamp import Timestamp
 from pydantic.types import condecimal
 
+class SurveyDeleteCitizen(BaseModel):
+    identity_number: str
 
 class SurveyForm(BaseModel):
 
