@@ -45,7 +45,7 @@ def get_citizens_from_location_code(
         )
 
 
-@router.get('survey/citizen_managed_by_username', tags=['Survey'])
+@router.get('/survey/citizens', tags=['Survey'])
 def get_citizen_managed_by_username(
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
@@ -72,7 +72,7 @@ def get_citizen_managed_by_username(
         return []
 
 
-@router.get('/survey/citizen-by-id-number', tags=["Survey"])
+@router.get('/survey/citizen/{id_number}', tags=["Survey"])
 def get_citizen_by_id_number(
     id_number: str,
     db: MongoClient = Depends(get_database),
@@ -136,7 +136,7 @@ def get_age_gender_dist_in_loc(
         )
 
 
-@router.post('/survey/insert_data_citizen', tags=['Survey'])
+@router.post('/survey/insert', tags=['Survey'])
 def insert_data(
     data: SurveyForm,
     db: MongoClient = Depends(get_database),
