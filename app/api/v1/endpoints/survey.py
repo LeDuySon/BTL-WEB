@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, File
+from fastapi import responses
 from fastapi.datastructures import UploadFile
+from fastapi.responses import FileResponse
 from fastapi.exceptions import HTTPException
 from pymongo import MongoClient
 from app.crud.user import get_user_by_username
 import xlrd
+import shutil
 
 from app.models.survey import SurveyForm
 from ....models.auth import AuthToken
@@ -143,6 +146,13 @@ def insert_data(
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
 ):
+    user = get_user_by_username(auth.username, db)
+    if not user.active:
+        return {
+            "success": False,
+            "messages": 'user is not active'
+        }
+
     res = insert_data_into_col(data, db)
     if res == False:
         raise HTTPException(
@@ -178,19 +188,30 @@ def search_in_survey_by_keyword(
 
 
 @router.post('/survey/upload_file', tags=['Survey'])
-async def  upload_file_survey(
-    data_file: UploadFile = File(...),
+async def upload_file_survey(
+    file: UploadFile = File(...),
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
 ):
-    # with open('${data_file_filename}', 'wb')
     user = get_user_by_username(auth.username, db)
-    if not user:
+    if not user.active:
         return {
-            "success": True,
+            "success": False,
             "messages": 'user is not active'
         }
 
-    content = await data_file.read()
-    print(content)
-    return data_file.filename
+    with open(f'survey_upload/{file.filename}', 'wb') as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # content = await file.read()
+    # print(content)
+    return file.filename
+
+@router.get('survey/template/download', response_class = FileResponse,tags=['Survey'])
+def get_template(
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    file_path = 'download_template/template.docx'
+    return FileResponse(path=file_path, filename='template.docx', media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    # return file_path
