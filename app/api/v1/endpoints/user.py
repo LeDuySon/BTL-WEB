@@ -144,10 +144,12 @@ def get_child_survey_time(
             }
         }
     else:
-        raise HTTPException(
-            status_code=401,
-            detail='Cannot find child user survey time'
-        )
+        return {
+            "success": True,
+            "messages": {
+                "data": []
+            }
+        }
 
 
 @router.post("/user/childs/authorize/time", tags=["User"])
