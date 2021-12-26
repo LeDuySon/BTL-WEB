@@ -25,6 +25,30 @@ def get_citizens_from_survey_col(code: str, unit: str, db: MongoClient):
     return list(data)
 
 
+def count_number_survey_of_loc(locs: LocationListInSurvey, db: MongoClient):
+    if(len(locs.codes) > 0):
+        loc_code = locs.codes[0]
+        field_name = get_collection_name_from_location_code(loc_code)
+        pipeline = [
+            {
+                '$match': {
+                    f'permanent_address.{field_name}': {
+                        '$in': locs.codes
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': f'$permanent_address.{field_name}',
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }
+        ]
+        data = db[database_name][survey_collection_name].aggregate(pipeline)
+        return list(data)
+    return []
+
 def get_citizen_by_username(username: str, unit: str, db: MongoClient):
     query_field = 'permanent_address.' + unit
     data = db[database_name][survey_collection_name].find(
@@ -268,7 +292,8 @@ def insert_data_into_col(data: SurveyForm, db: MongoClient):
     if check_dob is None:
         return 'invalid date of birth'
 
-    hometown = db[database_name][city_collection_name].find_one({'code': data_json['hometown']})
+    hometown = db[database_name][city_collection_name].find_one(
+        {'code': data_json['hometown']})
     if hometown is None:
         return 'hometown not exist'
 
