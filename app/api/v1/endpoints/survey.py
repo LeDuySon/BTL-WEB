@@ -14,7 +14,7 @@ from ....models.auth import AuthToken
 from ....db.mongodb import get_database
 from ....core.jwt import validate_token
 from ....crud.location import get_location_unit_from_location_code
-from ....crud.survey import (get_citizen_by_identidy_number, get_citizen_by_username,
+from ....crud.survey import (check_user_has_permission_to_delete, get_citizen_by_identidy_number, get_citizen_by_username,
                              get_citizens_from_survey_col,
                              retrieve_number_of_people_per_occupation,
                              retrieve_age_dist_per_gender,
@@ -172,6 +172,40 @@ def insert_data(
         }
 
 
+@router.post('/survey/citizen/delete', tags=['Survey'])
+def delete_one_citizen(
+    id_num: str,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    user = get_user_by_username(auth.username, db)
+    if not user.active:
+        return {
+            "success": False,
+            "messages": 'user is not active'
+        }
+
+    location_unit = get_location_unit_from_location_code(user.username)
+    if location_unit:
+        res = check_user_has_permission_to_delete(
+            user.username, location_unit, id_num, db)
+        if isinstance(res, str):
+            raise HTTPException(
+                status_code=409,
+                detail=res,
+            )
+        else:
+            return {
+                "success": True,
+                "messages": {}
+            }
+    else:
+        raise HTTPException(
+            status_code=409,
+            detail='user not have permission',
+        )
+
+
 @router.get('/survey/search/{keyword}', tags=['Survey'])
 def search_in_survey_by_keyword(
     keyword: str,
@@ -208,7 +242,8 @@ async def upload_file_survey(
     # print(content)
     return file.filename
 
-@router.get('/survey/template/download', response_class = FileResponse,tags=['Survey'])
+
+@router.get('/survey/template/download', response_class=FileResponse, tags=['Survey'])
 def get_template(
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
