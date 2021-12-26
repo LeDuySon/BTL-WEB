@@ -148,8 +148,9 @@ def transform_data(data, db):
 
     p_city = db[database_name][city_collection_name].find_one(
         {'name': data['permanent_address']['city']})['code']
-    p_district = db[database_name][district_collection_name].find_one({'name': data['permanent_address']['district']})['code']
-    
+    p_district = db[database_name][district_collection_name].find_one(
+        {'name': data['permanent_address']['district']})['code']
+
     p_ward = db[database_name][ward_collection_name].find_one(
         {'name': data['permanent_address']['ward']})['code']
     p_civil_group = db[database_name][civil_group_collection_name].find_one(
@@ -192,8 +193,60 @@ def transform_data(data, db):
 
     return trans_data
 
-def retrieve_doc_in_survey(keyword: str, db: MongoClient):
-    keyword
+
+def retrieve_doc_in_survey(keyword: str, loc_code: str, db: MongoClient):
+    """Get people in survey by name (keyword)"""
+    field_name = get_collection_name_from_location_code(loc_code)
+    match_phase = None
+    keyword_len = len(keyword.split(" "))
+    keyword_len = keyword_len if keyword_len <= 3 else 3
+    if(field_name == "country"):
+        match_phase = {
+            '$match': {
+                '$text': {
+                    '$search': keyword
+                }
+            }
+        }
+    else:
+        match_phase = {
+            '$match': {
+                f'permanent_address.{field_name}': loc_code,
+                '$text': {
+                    '$search': keyword
+                }
+            }
+        }
+
+    pipeline = [
+        match_phase, {
+            '$project': {
+                'identity_number': 1, 
+                'fullname': 1, 
+                'score': {
+                    '$meta': 'textScore'
+                }, 
+                '_id': 0
+            }
+        }, {
+            '$match': {
+                'score': {
+                    '$gt': (0.3 * keyword_len)
+                }
+            }
+        }, {
+            '$sort': {
+                'score': {
+                    '$meta': 'textScore'
+                }
+            }
+        }
+    ]
+
+    data = db[database_name][survey_collection_name].aggregate(pipeline)
+    data = [d["identity_number"] for d in list(data)]
+    return list(data)
+
 
 def insert_data_into_col(data: SurveyForm, db: MongoClient):
     data_json = jsonable_encoder(data)
@@ -208,4 +261,3 @@ def insert_data_into_col(data: SurveyForm, db: MongoClient):
     except pymongo.errors.DuplicateKeyError:
         return False
     return True
-
