@@ -17,4 +17,5 @@ country_collection_name = "country"
 city_collection_name = "city"
 district_collection_name = "district"
 ward_collection_name = "ward"
+civil_group_collection_name = 'civil_group'
 survey_collection_name = 'survey'
