@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, File
 from fastapi.datastructures import UploadFile
 from fastapi.exceptions import HTTPException
 from pymongo import MongoClient
+import shutil
 
 from app.models.survey import SurveyForm
 from ....models.auth import AuthToken
@@ -124,10 +125,14 @@ def insert_data(
         }
 
 
-# @router.post('/survey/upload_file', tags=['Survey'])
-# def upload_file_survey(
-#     data_file: UploadFile = File(...),
-#     db: MongoClient = Depends(get_database),
-#     auth: AuthToken = Depends(validate_token)
-# ):
-#     return data_file.filename
+@router.post('/survey/upload_file_data', tags=['Survey'])
+def upload_file_survey(
+    data_file: UploadFile = File(...),
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    with 'D:\Download'.open(f'{data_file.filename}', 'wb') as buffer:
+        shutil.copyfileobj(data_file.file, buffer)
+        
+    # print(contents)
+    return data_file.filename

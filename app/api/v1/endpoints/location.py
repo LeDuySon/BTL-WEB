@@ -6,19 +6,20 @@ from ....models.auth import AuthToken
 from ....db.mongodb import get_database
 from ....core.jwt import validate_token
 from ....core.authorization import validate_user_authorization_on_update_location
-from ....crud.location import (update_code_of_location, 
+from ....crud.location import (get_all_location, update_code_of_location,
                                is_location_exists,
                                create_new_location)
 from ....crud.user import get_user_by_username
 
 router = APIRouter()
 
+
 @router.put("/location/update", tags=["Location"])
 def update_location_code(
     location: LocationInUpdateCode,
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
-    ):
+):
     return_msg = ""
     user = get_user_by_username(auth.username, db)
 
@@ -33,21 +34,22 @@ def update_location_code(
             return_msg = "Location code is already existed"
             raise HTTPException(
                 status_code=409,
-                detail = return_msg
+                detail=return_msg
             )
     else:
         raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User is not authorized to access this location",
-            )
-    
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is not authorized to access this location",
+        )
+
+
 @router.post("/location/create", tags=["Location"])
 def create_location(
     location: LocationInCreate,
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
-    ):
-    
+):
+
     user = get_user_by_username(auth.username, db)
     if(not is_location_exists(user.manage_location, location, db)):
         # location not exists
@@ -55,11 +57,18 @@ def create_location(
     else:
         raise HTTPException(
             status_code=409,
-            detail = "Location already existed"
+            detail="Location already existed"
         )
     return {
         "messages": {},
         "success": True
     }
-    
-    
+
+
+@router.get('/get_all_location', tags=['Location'])
+def get_all_location_from_database(
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    data = get_all_location(db)
+    return data
