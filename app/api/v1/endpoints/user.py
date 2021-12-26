@@ -12,7 +12,7 @@ from ....models.auth import AuthToken
 from ....crud.user import (create_new_user, delete_user_by_username, get_child_role, get_child_user_survey_time_from_user_id,
                            get_management_info_by_username,
                            get_user_by_username,
-                           get_child_user_from_user_id,
+                           get_child_user_from_user_id, update_is_finish,
                            update_user_state,
                            update_valid_declare_time)
 
@@ -149,6 +149,26 @@ def get_child_survey_time(
             "messages": {
                 "data": []
             }
+        }
+
+
+@router.post('/user/finish_task', tags=['User'])
+def remark_finishing_task(
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    user = get_user_by_username(auth.username, db)
+    res = update_is_finish(user, db)
+
+    if isinstance(res, str):
+        raise HTTPException(
+            status_code=409,
+            detail=res,
+        )
+    else:
+        return {
+            "success": True,
+            "messages": {}
         }
 
 

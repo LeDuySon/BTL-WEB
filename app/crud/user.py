@@ -95,7 +95,7 @@ def get_child_user_from_user_id(id: ObjectId, db: MongoClient):
 
 def get_child_user_survey_time_from_user_id(id: ObjectId, db: MongoClient):
     data = db[database_name][user_collection_name].find(
-        {"manager_id": id, "is_finish": False, "survey_time": {"$exists" : True}}, {"username": 1, "survey_time": 1, "is_finish": 1, "_id": 0})
+        {"manager_id": id, "is_finish": False, "survey_time": {"$exists": True}}, {"username": 1, "survey_time": 1, "is_finish": 1, "_id": 0})
     return list(data)
 
 
@@ -138,13 +138,15 @@ def create_new_user(user: UserInCreate, manager_name: str, db: MongoClient):
     # insert into database
     try:
         db[database_name][user_collection_name].insert_one(user_json)
-    except pymongo.errors.DuplicateKeyError: 
-        return False 
+    except pymongo.errors.DuplicateKeyError:
+        return False
     return True
+
 
 """
 CRUD UPDATE
 """
+
 
 def update_user_state(user_state: UserState, db: MongoClient):
     user = get_user_by_username(user_state.username, db)
@@ -158,6 +160,7 @@ def update_user_state(user_state: UserState, db: MongoClient):
     if(update_results.modified_count > 0):
         return True
     return False
+
 
 def update_valid_declare_time(user: UserInAuthorize, db: MongoClient):
     """Update the start and end time of the right of declaration"""
@@ -185,6 +188,20 @@ def update_valid_declare_time(user: UserInAuthorize, db: MongoClient):
     if(update_results.modified_count > 0):
         return True
     return False
+
+
+def update_is_finish(user: User, db: MongoClient):
+    child_users = get_child_user_from_user_id(user.id, db)
+    print(child_users)
+    for child_user in child_users:
+        if child_user['is_finish'] == False:
+            return 'child user is not finish tasks'
+
+    try:
+        db[database_name][user_collection_name].update_one({'username': user.username}, {'$set': {'is_finish': False}})
+    except pymongo.errors.DuplicateKeyError:
+        return 'cannot update finish task'
+    return True
 
 
 """
