@@ -70,6 +70,50 @@ def get_all_childs_of_location(
         return data
     return []
 
+def get_all_childs_from_code(
+        loc_code: str,
+        db: MongoClient):
+    """Get all locations which is a child of the given location code"""
+    sub_collection = get_loc_name_from_parent_code(loc_code, db)
+    query_collection = get_collection_name_from_location_code(loc_code)
+    pipeline = [
+        {
+            '$match': {
+                'code': loc_code
+            }
+        }, {
+            '$unwind': {
+                'path': f'${sub_collection}'
+            }
+        }, {
+            '$lookup': {
+                'from': sub_collection,
+                'localField': sub_collection,
+                'foreignField': '_id',
+                'as': 'info'
+            }
+        }, {
+            '$project': {
+                'info': {
+                    '$first': '$info'
+                },
+                '_id': 0
+            }
+        }, {
+            '$project': {
+                'code': '$info.code',
+                'name': '$info.name'
+            }
+        }
+    ]
+
+    data = db[database_name][query_collection].aggregate(pipeline)
+    data = list(data)
+    if(len(data) > 0):
+        if(len(data[0].keys()) > 0):
+            return data
+    return []
+
 def is_location_exists(parents_code: str, location: LocationInCreate, db: MongoClient):
     """True if exists else False"""
     query = None 
