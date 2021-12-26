@@ -19,7 +19,8 @@ from ....crud.survey import (get_citizen_by_identidy_number, get_citizen_by_user
                              retrieve_number_of_people_per_occupation,
                              retrieve_age_dist_per_gender,
                              insert_data_into_col,
-                             retrieve_doc_in_survey)
+                             retrieve_doc_in_survey,
+                             count_number_survey_of_loc)
 from ....models.location import LocationListInSurvey
 
 router = APIRouter()
@@ -215,3 +216,25 @@ def get_template(
     file_path = 'download_template/template.docx'
     return FileResponse(path=file_path, filename='template.docx', media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     # return file_path
+    
+@router.post('/survey/location/count', tags=["Survey"])
+def get_number_of_survey_of_location(
+    locs: LocationListInSurvey,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    """Count number of people do survey in location"""
+    data = count_number_survey_of_loc(locs, db)
+
+    if len(data) != 0:
+        return {
+            "success": True,
+            "messages": {
+                "data": data
+            }
+        }
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="not found"
+        )
