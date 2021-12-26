@@ -200,6 +200,11 @@ def retrieve_coordinates_of_childs_loc(loc_code: str, db: MongoClient):
         }
     ]
     
+    if(query_collection == ""):
+        raise HTTPException(
+            status_code=400,
+            detail=f"{loc_code} code is not valid"
+        )
     data = db[database_name][query_collection].aggregate(pipeline)
     return list(data)
 
