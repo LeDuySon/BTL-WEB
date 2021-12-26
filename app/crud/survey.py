@@ -24,6 +24,13 @@ def get_citizens_from_survey_col(code: str, unit: str, db: MongoClient):
     return list(data)
 
 
+def get_citizen_by_username(username: str, unit: str, db: MongoClient):
+    query_field = 'permanent_address.' + unit
+    data = db[database_name][survey_collection_name].find(
+        {query_field: username}, {'_id': 0})
+    return list(data)
+
+
 def get_citizen_by_identidy_number(id_number: str, db: MongoClient):
     data = db[database_name][survey_collection_name].find_one(
         {"identity_number": id_number}, {'_id': 0})
@@ -221,11 +228,11 @@ def retrieve_doc_in_survey(keyword: str, loc_code: str, db: MongoClient):
     pipeline = [
         match_phase, {
             '$project': {
-                'identity_number': 1, 
-                'fullname': 1, 
+                'identity_number': 1,
+                'fullname': 1,
                 'score': {
                     '$meta': 'textScore'
-                }, 
+                },
                 '_id': 0
             }
         }, {
