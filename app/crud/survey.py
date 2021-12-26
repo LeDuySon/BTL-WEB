@@ -65,8 +65,6 @@ def get_citizen_by_identidy_number(id_number: str, db: MongoClient):
 def check_user_has_permission_to_delete(username: str, unit: str, id_number: str, db: MongoClient):
     citizen = db[database_name][survey_collection_name].find_one(
         {'identity_number': id_number})
-    # citizen = list(citizen)
-    print(citizen['permanent_address'])
     print(unit)
 
     if not citizen:
