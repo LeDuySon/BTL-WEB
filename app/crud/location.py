@@ -1,3 +1,4 @@
+from fastapi.exceptions import HTTPException
 from pymongo import MongoClient
 from typing import List
 from odmantic import ObjectId
@@ -6,7 +7,9 @@ from ..core.config import (database_name,
                            country_collection_name,
                            city_collection_name,
                            district_collection_name,
-                           ward_collection_name)
+                           ward_collection_name,
+                           civil_group_collection_name)
+
 from ..models.location import LocationInUpdateCode, LocationInCreate
 from ..models.user import User
 
@@ -76,6 +79,12 @@ def get_all_childs_from_code(
     """Get all locations which is a child of the given location code"""
     sub_collection = get_loc_name_from_parent_code(loc_code, db)
     query_collection = get_collection_name_from_location_code(loc_code)
+    if(sub_collection == "" or query_collection == ""):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid code",
+        )
+    
     pipeline = [
         {
             '$match': {
@@ -168,6 +177,7 @@ Utils for location
 """
 
 def get_collection_name_from_code_length(code_length):
+    collection_name = ""
     if(code_length == 1):
         collection_name = country_collection_name
     elif(code_length == 2):
@@ -176,6 +186,9 @@ def get_collection_name_from_code_length(code_length):
         collection_name = district_collection_name
     elif(code_length == 6):
         collection_name = ward_collection_name
+    elif(code_length == 8):
+        collection_name = civil_group_collection_name
+
     return collection_name
 
 def get_loc_name_from_parent_code(parent_code: str, db: MongoClient):
@@ -187,7 +200,6 @@ def get_loc_name_from_parent_code(parent_code: str, db: MongoClient):
     
 def get_collection_name_from_location_code(code: str) -> str:
     code_length = len(code)
-    
     return get_collection_name_from_code_length(code_length)
 
 def get_location_unit_from_location_code(code: str):
@@ -201,6 +213,8 @@ def get_location_unit_from_location_code(code: str):
         location_unit = 'district'
     elif(code_length == 6):
         location_unit = 'ward'
+    elif(code_length == 8):
+        location_unit = 'civil_group'
     return location_unit
 
 def get_collection_field(location_info: dict) -> str:
