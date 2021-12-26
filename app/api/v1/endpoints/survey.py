@@ -142,12 +142,17 @@ def insert_data(
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
 ):
-    if not insert_data_into_col(data, db):
+    res = insert_data_into_col(data, db)
+    if res == False:
         raise HTTPException(
             status_code=409,
-            detail="identity number has already existed",
+            detail="somthing went wrong",
         )
-
+    elif isinstance(res, str):
+        raise HTTPException(
+            status_code=409,
+            detail=res,
+        )
     else:
         return {
             "success": True,

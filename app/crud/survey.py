@@ -2,6 +2,7 @@ from fastapi.encoders import jsonable_encoder
 import pymongo
 from pymongo import MongoClient
 import datetime
+import re
 
 from ..models.location import LocationListInSurvey
 from ..models.survey import SurveyForm
@@ -149,58 +150,6 @@ def retrieve_age_dist_per_gender(location: LocationListInSurvey, gender: str, db
     return []
 
 
-def transform_data(data, db):
-    hometown = db[database_name][city_collection_name].find_one(
-        {'name': data['hometown']})['code']
-
-    p_city = db[database_name][city_collection_name].find_one(
-        {'name': data['permanent_address']['city']})['code']
-    p_district = db[database_name][district_collection_name].find_one(
-        {'name': data['permanent_address']['district']})['code']
-
-    p_ward = db[database_name][ward_collection_name].find_one(
-        {'name': data['permanent_address']['ward']})['code']
-    p_civil_group = db[database_name][civil_group_collection_name].find_one(
-        {'name': data['permanent_address']['civil_group']})['code']
-
-    t_city = db[database_name][city_collection_name].find_one(
-        {'name': data['temporary_address']['city']})['code']
-    t_district = db[database_name][district_collection_name].find_one(
-        {'name': data['temporary_address']['district']})['code']
-    t_ward = db[database_name][ward_collection_name].find_one(
-        {'name': data['temporary_address']['ward']})['code']
-    t_civil_group = db[database_name][civil_group_collection_name].find_one(
-        {'name': data['temporary_address']['civil_group']})['code']
-
-    trans_data = {
-        'identity_number': data['identity_number'],
-        'fullname': data['fullname'],
-        'birthday': data['dob'],
-        'gender': data['gender'],
-        'hometown': hometown,
-        'permanent_address': {
-            'city': p_city,
-            'district': p_district,
-            'ward': p_ward,
-            'civil_group': p_civil_group,
-            'home_address': data['permanent_address']['home_address'] + ', ' + data['permanent_address']['ward'] + ', ' + data['permanent_address']['district'] + ', ' + data['permanent_address']['city']
-        },
-        'temporary_address': {
-            'city': t_city,
-            'district': t_district,
-            'ward': t_ward,
-            'civil_group': t_civil_group,
-            'home_address': data['temporary_address']['home_address'] + ', ' + data['temporary_address']['ward'] + ', ' + data['temporary_address']['district'] + ', ' + data['temporary_address']['city']
-        },
-        'religion': data['religion'],
-        'job': data['job'],
-        'edu_level': data['edu_level'],
-        'createAt': data['createAt']
-    }
-
-    return trans_data
-
-
 def retrieve_doc_in_survey(keyword: str, loc_code: str, db: MongoClient):
     """Get people in survey by name (keyword)"""
     field_name = get_collection_name_from_location_code(loc_code)
@@ -255,16 +204,76 @@ def retrieve_doc_in_survey(keyword: str, loc_code: str, db: MongoClient):
     return list(data)
 
 
+# def transform_data(data, db):
+#     hometown = db[database_name][city_collection_name].find_one(
+#         {'name': data['hometown']})['code']
+
+#     p_city = db[database_name][city_collection_name].find_one(
+#         {'name': data['permanent_address']['city']})['code']
+#     p_district = db[database_name][district_collection_name].find_one(
+#         {'name': data['permanent_address']['district']})['code']
+
+#     p_ward = db[database_name][ward_collection_name].find_one(
+#         {'name': data['permanent_address']['ward']})['code']
+#     p_civil_group = db[database_name][civil_group_collection_name].find_one(
+#         {'name': data['permanent_address']['civil_group']})['code']
+
+#     t_city = db[database_name][city_collection_name].find_one(
+#         {'name': data['temporary_address']['city']})['code']
+#     t_district = db[database_name][district_collection_name].find_one(
+#         {'name': data['temporary_address']['district']})['code']
+#     t_ward = db[database_name][ward_collection_name].find_one(
+#         {'name': data['temporary_address']['ward']})['code']
+#     t_civil_group = db[database_name][civil_group_collection_name].find_one(
+#         {'name': data['temporary_address']['civil_group']})['code']
+
+#     trans_data = {
+#         'identity_number': data['identity_number'],
+#         'fullname': data['fullname'],
+#         'birthday': data['dob'],
+#         'gender': data['gender'],
+#         'hometown': hometown,
+#         'permanent_address': {
+#             'city': p_city,
+#             'district': p_district,
+#             'ward': p_ward,
+#             'civil_group': p_civil_group,
+#             'home_address': data['permanent_address']['home_address'] + ', ' + data['permanent_address']['ward'] + ', ' + data['permanent_address']['district'] + ', ' + data['permanent_address']['city']
+#         },
+#         'temporary_address': {
+#             'city': t_city,
+#             'district': t_district,
+#             'ward': t_ward,
+#             'civil_group': t_civil_group,
+#             'home_address': data['temporary_address']['home_address'] + ', ' + data['temporary_address']['ward'] + ', ' + data['temporary_address']['district'] + ', ' + data['temporary_address']['city']
+#         },
+#         'religion': data['religion'],
+#         'job': data['job'],
+#         'edu_level': data['edu_level'],
+#         'createAt': data['createAt']
+#     }
+
+#     return trans_data
+
+
 def insert_data_into_col(data: SurveyForm, db: MongoClient):
     data_json = jsonable_encoder(data)
-    id_num = data_json['identity_number']
-    if db[database_name][survey_collection_name].find_one({'identity_number': id_num}):
-        return False
+    id_num = db[database_name][survey_collection_name].find_one(
+        {'identity_number': data_json['identity_number']})
+    if id_num:
+        return 'id number has already existed'
 
-    trans_data = transform_data(data_json, db)
+    dob = data_json['dob']
+    check_dob = re.search("^([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])(\.|-|/)([1-9]|0[1-9]|1[0-2])(\.|-|/)([0-9][0-9]|19[0-9][0-9]|20[0-9][0-9])$|^([0-9][0-9]|19[0-9][0-9]|20[0-9][0-9])(\.|-|/)([1-9]|0[1-9]|1[0-2])(\.|-|/)([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])$", dob)
+    if check_dob is None:
+        return 'invalid date of birth'
+
+    hometown = db[database_name][city_collection_name].find_one({'code': data_json['hometown']})
+    if hometown is None:
+        return 'hometown not exist'
 
     try:
-        db[database_name][survey_collection_name].insert_one(trans_data)
+        db[database_name][survey_collection_name].insert_one(data_json)
     except pymongo.errors.DuplicateKeyError:
         return False
     return True
