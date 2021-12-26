@@ -207,7 +207,7 @@ async def upload_file_survey(
     # print(content)
     return file.filename
 
-@router.get('survey/template/download', response_class = FileResponse,tags=['Survey'])
+@router.get('/survey/template/download', response_class = FileResponse,tags=['Survey'])
 def get_template(
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
