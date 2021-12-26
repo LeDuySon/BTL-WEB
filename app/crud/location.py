@@ -176,6 +176,32 @@ def append_child_location(loc_code: str, object_id: str, db: MongoClient):
     db[database_name][query_collection].find_one_and_update(
         target_doc, update_field, upsert=True)
 
+def retrieve_coordinates_of_childs_loc(loc_code: str, db: MongoClient):
+    query_collection = get_loc_name_from_parent_code(loc_code, db)
+    pipeline = [
+        {
+            '$match': {
+                'parents_code': loc_code, 
+                'lat': {
+                    '$exists': True
+                }, 
+                'lng': {
+                    '$exists': True
+                }
+            }
+        }, {
+            '$project': {
+                'name': 1, 
+                'lat': 1, 
+                'lng': 1, 
+                'code': 1, 
+                '_id': 0
+            }
+        }
+    ]
+    
+    data = db[database_name][query_collection].aggregate(pipeline)
+    return list(data)
 
 """
 Utils for location
