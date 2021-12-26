@@ -2,19 +2,21 @@ from fastapi import APIRouter, Depends, File
 from fastapi.datastructures import UploadFile
 from fastapi.exceptions import HTTPException
 from pymongo import MongoClient
+from app.crud.user import get_user_by_username
 
 from app.models.survey import SurveyForm
 from ....models.auth import AuthToken
 
 from ....db.mongodb import get_database
 from ....core.jwt import validate_token
-from app.crud.location import get_location_unit_from_location_code
-from app.crud.survey import (get_citizen_by_identidy_number,
+from ....crud.location import get_location_unit_from_location_code
+from ....crud.survey import (get_citizen_by_identidy_number,
                              get_citizens_from_survey_col,
                              retrieve_number_of_people_per_occupation,
                              retrieve_age_dist_per_gender,
-                             insert_data_into_col)
-from app.models.location import LocationListInSurvey
+                             insert_data_into_col,
+                             retrieve_doc_in_survey)
+from ....models.location import LocationListInSurvey
 
 router = APIRouter()
 
@@ -123,7 +125,20 @@ def insert_data(
             "messages": {}
         }
 
-
+@router.get('/survey/search/{keyword}', tags=['Survey'])
+def search_in_survey_by_keyword(
+    keyword: str,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    user = get_user_by_username(auth.username, db)
+    data = retrieve_doc_in_survey(keyword, user.manage_location, db)
+    return {
+            "success": True,
+            "messages": {
+                "data": data
+            }
+        }
 # @router.post('/survey/upload_file', tags=['Survey'])
 # def upload_file_survey(
 #     data_file: UploadFile = File(...),
