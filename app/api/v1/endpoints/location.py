@@ -6,9 +6,10 @@ from ....models.auth import AuthToken
 from ....db.mongodb import get_database
 from ....core.jwt import validate_token
 from ....core.authorization import validate_user_authorization_on_update_location
-from ....crud.location import (get_all_location, update_code_of_location,
+from ....crud.location import (update_code_of_location,
                                is_location_exists,
-                               create_new_location)
+                               create_new_location,
+                               get_all_childs_from_code)
 from ....crud.user import get_user_by_username
 
 router = APIRouter()
@@ -63,12 +64,18 @@ def create_location(
         "messages": {},
         "success": True
     }
-
-
-@router.get('/get_all_location', tags=['Location'])
-def get_all_location_from_database(
+    
+@router.get("/location/{loc_code}/childs", tags=["Location"])
+def get_childs_info_of_loc(
+    loc_code: str,
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
-):
-    data = get_all_location(db)
-    return data
+    ):
+    data = get_all_childs_from_code(loc_code, db)
+    
+    return {
+        "messages": {
+            "data": data
+        },
+        "success": True
+    }

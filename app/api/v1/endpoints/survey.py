@@ -2,20 +2,21 @@ from fastapi import APIRouter, Depends, File
 from fastapi.datastructures import UploadFile
 from fastapi.exceptions import HTTPException
 from pymongo import MongoClient
-import shutil
+from app.crud.user import get_user_by_username
 
 from app.models.survey import SurveyForm
 from ....models.auth import AuthToken
 
 from ....db.mongodb import get_database
 from ....core.jwt import validate_token
-from app.crud.location import get_location_unit_from_location_code
-from app.crud.survey import (get_citizen_by_identidy_number,
+from ....crud.location import get_location_unit_from_location_code
+from ....crud.survey import (get_citizen_by_identidy_number, get_citizen_by_username,
                              get_citizens_from_survey_col,
                              retrieve_number_of_people_per_occupation,
                              retrieve_age_dist_per_gender,
-                             insert_data_into_col)
-from app.models.location import LocationListInSurvey
+                             insert_data_into_col,
+                             retrieve_doc_in_survey)
+from ....models.location import LocationListInSurvey
 
 router = APIRouter()
 
@@ -44,6 +45,33 @@ def get_citizens_from_location_code(
         )
 
 
+@router.get('survey/citizen_managed_by_username', tags=['Survey'])
+def get_citizen_managed_by_username(
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+
+    username = auth.username
+    location_unit = get_location_unit_from_location_code(username)
+    if location_unit == 'ward' or location_unit == 'civil_group':
+        data = get_citizen_by_username(username, location_unit, db)
+
+        if len(data) != 0:
+            return {
+                "success": True,
+                "messages": {
+                    "data": data
+                }
+            }
+        else:
+            raise HTTPException(
+                status_code=401,
+                detail="not found"
+            )
+    else:
+        return []
+
+
 @router.get('/survey/citizen-by-id-number', tags=["Survey"])
 def get_citizen_by_id_number(
     id_number: str,
@@ -65,7 +93,8 @@ def get_citizen_by_id_number(
             status_code=401,
             detail="not found"
         )
-        
+
+
 @router.post('/survey/location/occupation', tags=["Survey"])
 def get_number_of_peole_per_occupation(
     location: LocationListInSurvey,
@@ -81,6 +110,7 @@ def get_number_of_peole_per_occupation(
             "data": data
         }
     }
+
 
 @router.post('/survey/location/age-dist', tags=["Survey"])
 def get_age_gender_dist_in_loc(
@@ -99,7 +129,7 @@ def get_age_gender_dist_in_loc(
                 "data": data
             }
         }
-    else: 
+    else:
         raise HTTPException(
             status_code=400,
             detail="Gender not existed"
@@ -125,14 +155,26 @@ def insert_data(
         }
 
 
-@router.post('/survey/upload_file_data', tags=['Survey'])
-def upload_file_survey(
-    data_file: UploadFile = File(...),
+@router.get('/survey/search/{keyword}', tags=['Survey'])
+def search_in_survey_by_keyword(
+    keyword: str,
     db: MongoClient = Depends(get_database),
     auth: AuthToken = Depends(validate_token)
 ):
-    with 'D:\Download'.open(f'{data_file.filename}', 'wb') as buffer:
-        shutil.copyfileobj(data_file.file, buffer)
-        
-    # print(contents)
-    return data_file.filename
+    user = get_user_by_username(auth.username, db)
+    data = retrieve_doc_in_survey(keyword, user.manage_location, db)
+    return {
+        "success": True,
+        "messages": {
+            "data": data
+        }
+    }
+
+
+# @router.post('/survey/upload_file', tags=['Survey'])
+# def upload_file_survey(
+#     data_file: UploadFile = File(...),
+#     db: MongoClient = Depends(get_database),
+#     auth: AuthToken = Depends(validate_token)
+# ):
+#     return data_file.filename
