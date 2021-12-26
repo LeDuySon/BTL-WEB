@@ -192,6 +192,8 @@ def transform_data(data, db):
 
     return trans_data
 
+def retrieve_doc_in_survey(keyword: str, db: MongoClient):
+    keyword
 
 def insert_data_into_col(data: SurveyForm, db: MongoClient):
     data_json = jsonable_encoder(data)
@@ -206,3 +208,4 @@ def insert_data_into_col(data: SurveyForm, db: MongoClient):
     except pymongo.errors.DuplicateKeyError:
         return False
     return True
+
