@@ -9,7 +9,8 @@ from ....core.authorization import validate_user_authorization_on_update_locatio
 from ....crud.location import (update_code_of_location,
                                is_location_exists,
                                create_new_location,
-                               get_all_childs_from_code)
+                               get_all_childs_from_code,
+                               retrieve_coordinates_of_childs_loc)
 from ....crud.user import get_user_by_username
 
 router = APIRouter()
@@ -72,6 +73,38 @@ def get_childs_info_of_loc(
     auth: AuthToken = Depends(validate_token)
     ):
     data = get_all_childs_from_code(loc_code, db)
+    
+    return {
+        "messages": {
+            "data": data
+        },
+        "success": True
+    }
+
+@router.get("/location/childs/coordinates", tags=["Location"])
+def get_coordinates_of_childs_loc(
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+    ):
+    """Get coordinates lat lng of location that user manage"""
+    user = get_user_by_username(auth.username, db)
+    data = retrieve_coordinates_of_childs_loc(user.manage_location, db)
+    
+    return {
+        "messages": {
+            "data": data
+        },
+        "success": True
+    }
+    
+@router.get("/location/{loc_code}/childs/coordinates", tags=["Location"])
+def get_coordinates_childs_of_loc(
+    loc_code: str,
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+    ):
+    """Get coordinate of loc's childs"""
+    data = retrieve_coordinates_of_childs_loc(loc_code, db)
     
     return {
         "messages": {
