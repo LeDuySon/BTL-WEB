@@ -3,6 +3,7 @@ from fastapi.datastructures import UploadFile
 from fastapi.exceptions import HTTPException
 from pymongo import MongoClient
 from app.crud.user import get_user_by_username
+import xlrd
 
 from app.models.survey import SurveyForm
 from ....models.auth import AuthToken
@@ -176,10 +177,20 @@ def search_in_survey_by_keyword(
     }
 
 
-# @router.post('/survey/upload_file', tags=['Survey'])
-# def upload_file_survey(
-#     data_file: UploadFile = File(...),
-#     db: MongoClient = Depends(get_database),
-#     auth: AuthToken = Depends(validate_token)
-# ):
-#     return data_file.filename
+@router.post('/survey/upload_file', tags=['Survey'])
+async def  upload_file_survey(
+    data_file: UploadFile = File(...),
+    db: MongoClient = Depends(get_database),
+    auth: AuthToken = Depends(validate_token)
+):
+    # with open('${data_file_filename}', 'wb')
+    user = get_user_by_username(auth.username, db)
+    if not user:
+        return {
+            "success": True,
+            "messages": 'user is not active'
+        }
+
+    content = await data_file.read()
+    print(content)
+    return data_file.filename

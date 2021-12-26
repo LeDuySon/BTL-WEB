@@ -12,6 +12,7 @@ router = APIRouter()
 @router.post("/login", tags=["Authentication"])
 def login(user_login: UserInLogin, db: MongoClient = Depends(get_database)):
     user = authenticate_user(user_login, db)
+    print(user)
     if(not user):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -26,6 +27,7 @@ def login(user_login: UserInLogin, db: MongoClient = Depends(get_database)):
             "token": access_token,
             "username": user.username,
             "role": user.role,
+            "active": user.active,
             "avtConfig": user.avtConfig,
             "token_type": "bearer"
         },

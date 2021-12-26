@@ -13,6 +13,7 @@ class User(BaseModel):
     manage_location: str
     manager_id: ObjectId
     role: str
+    active: bool
     avtConfig: Optional[dict] = {}
     survey_time: Optional[dict] = {}
     is_finish: Optional[bool] = False
